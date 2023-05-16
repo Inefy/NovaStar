@@ -71,9 +71,9 @@ class DQNAgent(base_agent.BaseAgent):
                     self.update_target_model()
                     print(f"Episode {episode} finished after {steps_done} timesteps")
 
-                            if done:
-                    self.update_target_model()
-                    print(f"Episode {episode} finished after {steps_done} timesteps")
+                    if done:
+                        self.update_target_model()
+                        print(f"Episode {episode} finished after {steps_done} timesteps")
 
             if episode % self.target_update == 0:
                 self.update_target_model()
