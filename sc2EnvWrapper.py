@@ -21,7 +21,7 @@ class SC2EnvWrapper:
         return next_state, reward, done, {}
 
     def calculate_reward(self, obs):
-    reward = 0
+        reward = 0
 
     # Reward for defeating enemy units
     enemy_units = self.previous_obs.observation.raw_units.enemy

@@ -1,7 +1,7 @@
 class DQNAgent(base_agent.BaseAgent):
     def __init__(self, action_size, state_size, hidden_size=128, lr=1e-3, batch_size=64, gamma=0.99, epsilon_start=1.0, epsilon_end=0.01, epsilon_decay=500, target_update=10, memory_size=10000):
         super(DQNAgent, self).__init__()
-        
+
         self.action_size = action_size
         self.state_size = state_size
         self.batch_size = batch_size
@@ -32,14 +32,25 @@ class DQNAgent(base_agent.BaseAgent):
             return random.randrange(self.action_size)
 
     def update_model(self):
-        if len(self.memory) < self.batch_size:
-            return
-        state, action, reward, next_state, done = self.memory.sample(self.batch_size)
-        state = torch.from_numpy(state).float()
-        next_state = torch.from_numpy(next_state).float()
-        reward = torch.tensor(reward).float()
-        action = torch.tensor(action).long()
-        done = torch.tensor(done).bool()
+    if len(self.memory) < self.batch_size:
+        return
+    state, action, reward, next_state, done = self.memory.sample(self.batch_size)
+    state = torch.from_numpy(state).float()
+    next_state = torch.from_numpy(next_state).float()
+    reward = torch.tensor(reward).float()
+    action = torch.tensor(action).long()
+    done = torch.tensor(done).bool()
+
+    curr_Q = self.model(state).gather(1, action.unsqueeze(1))
+    next_action = self.model(next_state).max(1)[1] 
+    next_Q = self.target_model(next_state).gather(1, next_action.unsqueeze(1)).squeeze(1).detach()
+    expected_Q = reward + self.gamma * next_Q * (1 - done)
+
+    loss = self.criterion(curr_Q, expected_Q.unsqueeze(1))
+    self.optimizer.zero_grad()
+    loss.backward()
+    self.optimizer.step()
+
 
         curr_Q = self.model(state).gather(1, action.unsqueeze(1))
         next_Q = self.target_model(next_state).max(1)[0].detach()
@@ -59,7 +70,7 @@ class DQNAgent(base_agent.BaseAgent):
             done = False
             steps_done = 0
             while not done:
-                                action = self.get_action(state, steps_done)
+                action = self.get_action(state, steps_done)
                 next_state, reward, done, _ = env.step(action)
                 self.memory.push(state, action, reward, next_state, done)
                 self.update_model()
