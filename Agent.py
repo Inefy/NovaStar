@@ -11,12 +11,12 @@ class DQNAgent(base_agent.BaseAgent):
         self.epsilon_decay = epsilon_decay
         self.target_update = target_update
 
-        self.model = SimpleNet(self.state_size, self.action_size)
-        self.target_model = SimpleNet(self.state_size, self.action_size)
+        self.model = DuelingNet(self.state_size, self.action_size, hidden_size)
+        self.target_model = DuelingNet(self.state_size, self.action_size, hidden_size)
         self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
         self.criterion = nn.MSELoss()
 
-        self.memory = ReplayBuffer(memory_size)
+        self.memory = PrioritizedReplayBuffer(memory_size)
 
     def get_epsilon(self, steps_done):
         return self.epsilon_end + (self.epsilon_start - self.epsilon_end) * math.exp(-1. * steps_done / self.epsilon_decay)
@@ -32,28 +32,18 @@ class DQNAgent(base_agent.BaseAgent):
             return random.randrange(self.action_size)
 
     def update_model(self):
-    if len(self.memory) < self.batch_size:
-        return
-    state, action, reward, next_state, done = self.memory.sample(self.batch_size)
-    state = torch.from_numpy(state).float()
-    next_state = torch.from_numpy(next_state).float()
-    reward = torch.tensor(reward).float()
-    action = torch.tensor(action).long()
-    done = torch.tensor(done).bool()
-
-    curr_Q = self.model(state).gather(1, action.unsqueeze(1))
-    next_action = self.model(next_state).max(1)[1] 
-    next_Q = self.target_model(next_state).gather(1, next_action.unsqueeze(1)).squeeze(1).detach()
-    expected_Q = reward + self.gamma * next_Q * (1 - done)
-
-    loss = self.criterion(curr_Q, expected_Q.unsqueeze(1))
-    self.optimizer.zero_grad()
-    loss.backward()
-    self.optimizer.step()
-
+        if len(self.memory) < self.batch_size:
+            return
+        state, action, reward, next_state, done = self.memory.sample(self.batch_size)
+        state = torch.from_numpy(state).float()
+        next_state = torch.from_numpy(next_state).float()
+        reward = torch.tensor(reward).float()
+        action = torch.tensor(action).long()
+        done = torch.tensor(done).bool()
 
         curr_Q = self.model(state).gather(1, action.unsqueeze(1))
-        next_Q = self.target_model(next_state).max(1)[0].detach()
+        next_action = self.model(next_state).max(1)[1]
+        next_Q = self.target_model(next_state).gather(1, next_action.unsqueeze(1)).squeeze(1).detach()
         expected_Q = reward + self.gamma * next_Q * (1 - done)
 
         loss = self.criterion(curr_Q, expected_Q.unsqueeze(1))
@@ -81,6 +71,10 @@ class DQNAgent(base_agent.BaseAgent):
                     self.update_target_model()
                     print(f"Episode {episode} finished after {steps_done} timesteps")
 
+                            if done:
+                    self.update_target_model()
+                    print(f"Episode {episode} finished after {steps_done} timesteps")
+
             if episode % self.target_update == 0:
                 self.update_target_model()
 
@@ -92,4 +86,6 @@ class DQNAgent(base_agent.BaseAgent):
     def load_model(self, path):
         self.model.load_state_dict(torch.load(path))
         self.target_model.load_state_dict(torch.load(path))
+
+
 
