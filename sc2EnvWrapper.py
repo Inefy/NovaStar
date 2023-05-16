@@ -20,8 +20,8 @@ class SC2EnvWrapper:
         done = obs.last()
         return next_state, reward, done, {}
 
-    def calculate_reward(self, obs):
-        reward = 0
+def calculate_reward(self, obs):
+    reward = 0
 
     # Reward for defeating enemy units
     enemy_units = self.previous_obs.observation.raw_units.enemy
@@ -32,6 +32,9 @@ class SC2EnvWrapper:
     own_units = self.previous_obs.observation.raw_units.own
     current_own_units = obs.observation.raw_units.own
     reward -= len(own_units) - len(current_own_units)
+
+    # Additional reward for gaining resources, for example
+    # reward += (obs.observation.player.minerals - self.previous_obs.observation.player.minerals) / 100.0
 
     self.previous_obs = obs
     return reward
