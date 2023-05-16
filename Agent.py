@@ -31,7 +31,7 @@ class DQNAgent(base_agent.BaseAgent):
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
-    def run(self, env):
+        def run(self, env):
         state = env.reset()
         done = False
         while not done:
