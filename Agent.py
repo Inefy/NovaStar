@@ -31,3 +31,11 @@ class DQNAgent(base_agent.BaseAgent):
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+    def run(self, env):
+        state = env.reset()
+        done = False
+        while not done:
+            action = self.get_action(state)
+            next_state, reward, done, _ = env.step(action)
+            self.update_model(state, action, reward, next_state, done)
+            state = next_state
