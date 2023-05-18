@@ -1,4 +1,4 @@
-# SC2AI
+# NovaStar
 
 This repository contains an implementation of an AI agent that uses Deep Q-Learning Network (DQN) to play StarCraft II. 
 
