@@ -58,7 +58,7 @@ pip install -r requirements.txt
 
 ## Customization
 
-This AI is designed to be flexible and easy to customize. Here are a few ways you could extend or modify this project:
+This AI is designed to be flexible and easy to customize. Here are a few ways I plan to potentially modify this project:
 
 - **Different Rewards**: The reward function in `sc2envwrapper.py` can be customized to better suit your requirements.
 - **Different Network Architecture**: The DQN agent uses a Dueling DQN architecture, but you could replace it with another type of function approximator, such as a convolutional neural network for image-based observations.
